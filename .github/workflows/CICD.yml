@@ -2,7 +2,8 @@ name: Terraform CICD
 
 on:
   pull_request:
-    branches: [ "main" ]
+    branches:
+      - main
 
 permissions:
   id-token: write
@@ -11,66 +12,103 @@ permissions:
 
 jobs:
   terraform:
-    name: Terraform CICD
+    name: 'Terraform CICD'
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-    - name: Configure AWS Credentials (OIDC)
-      uses: aws-actions/configure-aws-credentials@v4
-      with:
-        aws-region: ap-northeast-2
-        role-to-assume: ${{ secrets.AWS_OIDC_ROLE_ARN }}
-        role-session-name: GitHubActionsOIDC
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-region: 'ap-northeast-2'
+          role-to-assume: ${{ secrets.AWS_OIDC_ROLE_ARN }}
+          role-session-name: 'GitHubActions-Terraform-Session'
 
-    - name: Setup Terraform
-      uses: hashicorp/setup-terraform@v3
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
 
-    - name: Install tfsec
-      run: |
-        curl -s https://raw.githubusercontent.com/aquasecurity/tfsec/master/scripts/install_linux.sh | bash
+      - name: Install tfsec
+        run: |
+          sudo curl -L -o /usr/local/bin/tfsec https://github.com/aquasecurity/tfsec/releases/download/v1.28.1/tfsec-linux-amd64
+          sudo chmod +x /usr/local/bin/tfsec
 
-    - name: Run tfsec Scan
-      run: |
-        tfsec --format=json . > tfsec_output.json || true
+      # =============================
+      # Run for each module sequentially
+      # =============================
+      - name: Run Terraform for each module
+        id: run_modules
+        run: |
+          for dir in ecr apprunner codepipeline; do
+            echo "===== Processing $dir ====="
+            cd $dir
 
-    - name: Terraform Init
-      run: terraform init -no-color
+            echo "Running tfsec..."
+            tfsec . --format=default > ../tfsec_${dir}.txt || true
 
-    - name: Terraform Plan
-      id: plan
-      run: |
-        terraform plan -no-color -detailed-exitcode -out=tfplan > plan_output.txt || exit_code=$?
-        echo "exit_code=${exit_code:-0}" >> $GITHUB_OUTPUT
+            echo "Terraform init..."
+            terraform init -no-color > ../init_${dir}.txt 2>&1 || true
 
-    - name: Terraform Apply
-      if: steps.plan.outputs.exit_code == '2'
-      run: terraform apply -auto-approve -no-color tfplan
+            echo "Terraform plan..."
+            terraform plan -no-color -out=tfplan > ../plan_${dir}.txt 2>&1 || true
 
-    - name: Update PR Results
-      if: github.event.pull_request
-      uses: marocchino/sticky-pull-request-comment@v2
-      with:
-        recreate: true
-        message: |
-          ## Terraform CICD Results
+            echo "Terraform apply..."
+            terraform apply -auto-approve -no-color tfplan > ../apply_${dir}.txt 2>&1 || true
 
-          ###  tfsec Security Scan
-          <details><summary>Click to expand</summary>
+            cd ..
+          done
 
-          ```json
-          $(cat tfsec_output.json)
-          ```
+      # =============================
+      # Summary Comment
+      # =============================
+      - name: Create or Update PR Comment
+        uses: actions/github-script@v7
+        if: always() && github.event.pull_request
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const dirs = ['ecr', 'apprunner', 'codepipeline'];
 
-          </details>
+            const createSection = (dir, type) => {
+              const content = require('fs').readFileSync(`${type}_${dir}.txt`, 'utf8');
+              const status = content.includes("Error") ? "❌" : "✅";
+              return `<details><summary>${status} ${type} (${dir})</summary>\n\n${content}\n</details>`;
+            };
 
-          ### Terraform Plan Changes
-          <details><summary>Click to expand</summary>
+            let body = "## Terraform CICD Results 🤖\n\n";
+            for (const dir of dirs) {
+              body += `### 📁 ${dir}\n`;
+              body += createSection(dir, 'tfsec');
+              body += createSection(dir, 'init');
+              body += createSection(dir, 'plan');
+              body += createSection(dir, 'apply');
+              body += "\n";
+            }
 
-          ```
-          $(cat plan_output.txt)
-          ```
+            const pr_number = context.issue.number;
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: pr_number,
+            });
 
-          </details>
+            const botComment = comments.find(comment =>
+              comment.user.login === 'github-actions[bot]' && comment.body.includes("Terraform CICD Results")
+            );
+
+            if (botComment) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: botComment.id,
+                body: body,
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: pr_number,
+                body: body,
+              });
+            }
