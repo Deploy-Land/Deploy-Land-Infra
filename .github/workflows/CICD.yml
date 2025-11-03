@@ -41,10 +41,12 @@ jobs:
 
     - name: Terraform Plan
       id: plan
-      run: terraform plan -no-color -out=tfplan > plan_output.txt
+      run: |
+        terraform plan -no-color -detailed-exitcode -out=tfplan > plan_output.txt || exit_code=$?
+        echo "exit_code=${exit_code:-0}" >> $GITHUB_OUTPUT
 
     - name: Terraform Apply
-      if: startsWith(github.head_ref, 'feature/')
+      if: steps.plan.outputs.exit_code == '2'
       run: terraform apply -auto-approve -no-color tfplan
 
     - name: Update PR Results
