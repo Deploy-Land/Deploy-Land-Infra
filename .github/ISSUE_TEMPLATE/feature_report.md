@@ -1,7 +1,7 @@
 ---
 name: Feature report
 about: Suggest an idea for this project
-title: "[Feature]"
+title: "[FEAT]"
 labels: ''
 assignees: ''
 
