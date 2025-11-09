@@ -1,4 +1,53 @@
 
+resource "aws_iam_policy" "tfer--AWSCodePipelineServiceRole-ap-northeast-2-app2" {
+  description = "Policy used in trust relationship with CodePipeline for service role"
+  name        = "AWSCodePipelineServiceRole-ap-northeast-2-app2"
+  path        = "/service-role/"
+
+  policy = <<POLICY
+{
+  "Statement": [
+    {
+      "Action": [
+        "s3:GetBucketVersioning",
+        "s3:GetBucketAcl",
+        "s3:GetBucketLocation"
+      ],
+      "Condition": {
+        "StringEquals": {
+          "aws:ResourceAccount": "761111057533"
+        }
+      },
+      "Effect": "Allow",
+      "Resource": [
+        "arn:aws:s3:::codepipeline-ap-northeast-2-00c4b2fd61e9-4566-864f-fad2326f7c47"
+      ],
+      "Sid": "AllowS3BucketAccess"
+    },
+    {
+      "Action": [
+        "s3:PutObject",
+        "s3:PutObjectAcl",
+        "s3:GetObject",
+        "s3:GetObjectVersion"
+      ],
+      "Condition": {
+        "StringEquals": {
+          "aws:ResourceAccount": "761111057533"
+        }
+      },
+      "Effect": "Allow",
+      "Resource": [
+        "arn:aws:s3:::codepipeline-ap-northeast-2-00c4b2fd61e9-4566-864f-fad2326f7c47/*"
+      ],
+      "Sid": "AllowS3ObjectAccess"
+    }
+  ],
+  "Version": "2012-10-17"
+}
+POLICY
+}
+
 resource "aws_iam_policy" "tfer--AWSCodePipelineServiceRole-ap-northeast-2-app2-eb-pipeline" {
   description = "Policy used in trust relationship with CodePipeline for service role"
   name        = "AWSCodePipelineServiceRole-ap-northeast-2-app2-eb-pipeline"
@@ -77,6 +126,61 @@ resource "aws_iam_policy" "tfer--AWSLambdaBasicExecutionRole-1eb4c717-94c4-4b59-
 POLICY
 }
 
+resource "aws_iam_policy" "tfer--AWSLambdaBasicExecutionRole-4da84aa1-96b2-4631-9179-a512c880634c" {
+  name = "AWSLambdaBasicExecutionRole-4da84aa1-96b2-4631-9179-a512c880634c"
+  path = "/service-role/"
+
+  policy = <<POLICY
+{
+  "Statement": [
+    {
+      "Action": "logs:CreateLogGroup",
+      "Effect": "Allow",
+      "Resource": "arn:aws:logs:ap-northeast-2:761111057533:*"
+    },
+    {
+      "Action": [
+        "logs:CreateLogStream",
+        "logs:PutLogEvents"
+      ],
+      "Effect": "Allow",
+      "Resource": [
+        "arn:aws:logs:ap-northeast-2:761111057533:log-group:/aws/lambda/my-test-lambda:*"
+      ]
+    }
+  ],
+  "Version": "2012-10-17"
+}
+POLICY
+}
+
+resource "aws_iam_policy" "tfer--AWSLambdaBasicExecutionRole-7cbf3e6d-1c7c-43c2-aae6-afee44e228dc" {
+  name = "AWSLambdaBasicExecutionRole-7cbf3e6d-1c7c-43c2-aae6-afee44e228dc"
+  path = "/service-role/"
+
+  policy = <<POLICY
+{
+  "Statement": [
+    {
+      "Action": "logs:CreateLogGroup",
+      "Effect": "Allow",
+      "Resource": "arn:aws:logs:ap-northeast-2:761111057533:*"
+    },
+    {
+      "Action": [
+        "logs:CreateLogStream",
+        "logs:PutLogEvents"
+      ],
+      "Effect": "Allow",
+      "Resource": [
+        "arn:aws:logs:ap-northeast-2:761111057533:log-group:/aws/lambda/check-enchant-rate:*"
+      ]
+    }
+  ],
+  "Version": "2012-10-17"
+}
+POLICY
+}
 
 resource "aws_iam_policy" "tfer--AWSLambdaBasicExecutionRole-80c9f1c1-5966-4509-9da3-745840439e59" {
   name = "AWSLambdaBasicExecutionRole-80c9f1c1-5966-4509-9da3-745840439e59"
@@ -134,7 +238,6 @@ resource "aws_iam_policy" "tfer--AWSLambdaBasicExecutionRole-cb056cbd-e394-49e9-
 POLICY
 }
 
-
 resource "aws_iam_policy" "tfer--Amazon_EventBridge_Invoke_Lambda_2059101862" {
   name = "Amazon_EventBridge_Invoke_Lambda_2059101862"
   path = "/service-role/"
@@ -179,6 +282,265 @@ resource "aws_iam_policy" "tfer--Amazon_EventBridge_Invoke_Lambda_App_Healthchec
 POLICY
 }
 
+resource "aws_iam_policy" "tfer--CodeBuildBasePolicy-build-project-2-ap-northeast-2" {
+  description = "Policy used in trust relationship with CodeBuild"
+  name        = "CodeBuildBasePolicy-build-project-2-ap-northeast-2"
+  path        = "/service-role/"
+
+  policy = <<POLICY
+{
+  "Statement": [
+    {
+      "Action": [
+        "logs:CreateLogGroup",
+        "logs:CreateLogStream",
+        "logs:PutLogEvents"
+      ],
+      "Effect": "Allow",
+      "Resource": [
+        "arn:aws:logs:ap-northeast-2:761111057533:log-group:/aws/codebuild/build-project-2",
+        "arn:aws:logs:ap-northeast-2:761111057533:log-group:/aws/codebuild/build-project-2:*"
+      ]
+    },
+    {
+      "Action": [
+        "s3:PutObject",
+        "s3:GetObject",
+        "s3:GetObjectVersion",
+        "s3:GetBucketAcl",
+        "s3:GetBucketLocation"
+      ],
+      "Effect": "Allow",
+      "Resource": [
+        "arn:aws:s3:::codepipeline-ap-northeast-2-*"
+      ]
+    },
+    {
+      "Action": [
+        "codebuild:CreateReportGroup",
+        "codebuild:CreateReport",
+        "codebuild:UpdateReport",
+        "codebuild:BatchPutTestCases",
+        "codebuild:BatchPutCodeCoverages"
+      ],
+      "Effect": "Allow",
+      "Resource": [
+        "arn:aws:codebuild:ap-northeast-2:761111057533:report-group/build-project-2-*"
+      ]
+    }
+  ],
+  "Version": "2012-10-17"
+}
+POLICY
+}
+
+resource "aws_iam_policy" "tfer--CodeBuildBasePolicy-bulid-project-2-ap-northeast-2" {
+  description = "Policy used in trust relationship with CodeBuild"
+  name        = "CodeBuildBasePolicy-bulid-project-2-ap-northeast-2"
+  path        = "/service-role/"
+
+  policy = <<POLICY
+{
+  "Statement": [
+    {
+      "Action": [
+        "logs:CreateLogGroup",
+        "logs:CreateLogStream",
+        "logs:PutLogEvents"
+      ],
+      "Effect": "Allow",
+      "Resource": [
+        "arn:aws:logs:ap-northeast-2:761111057533:log-group:/aws/codebuild/bulid-project-2",
+        "arn:aws:logs:ap-northeast-2:761111057533:log-group:/aws/codebuild/bulid-project-2:*"
+      ]
+    },
+    {
+      "Action": [
+        "s3:PutObject",
+        "s3:GetObject",
+        "s3:GetObjectVersion",
+        "s3:GetBucketAcl",
+        "s3:GetBucketLocation"
+      ],
+      "Effect": "Allow",
+      "Resource": [
+        "arn:aws:s3:::codepipeline-ap-northeast-2-*"
+      ]
+    },
+    {
+      "Action": [
+        "codebuild:CreateReportGroup",
+        "codebuild:CreateReport",
+        "codebuild:UpdateReport",
+        "codebuild:BatchPutTestCases",
+        "codebuild:BatchPutCodeCoverages"
+      ],
+      "Effect": "Allow",
+      "Resource": [
+        "arn:aws:codebuild:ap-northeast-2:761111057533:report-group/bulid-project-2-*"
+      ]
+    }
+  ],
+  "Version": "2012-10-17"
+}
+POLICY
+}
+
+resource "aws_iam_policy" "tfer--CodeBuildBasePolicy-sample-app-build2-ap-northeast-2" {
+  description = "Policy used in trust relationship with CodeBuild"
+  name        = "CodeBuildBasePolicy-sample-app-build2-ap-northeast-2"
+  path        = "/service-role/"
+
+  policy = <<POLICY
+{
+  "Statement": [
+    {
+      "Action": [
+        "logs:CreateLogGroup",
+        "logs:CreateLogStream",
+        "logs:PutLogEvents"
+      ],
+      "Effect": "Allow",
+      "Resource": [
+        "arn:aws:logs:ap-northeast-2:761111057533:log-group:/aws/codebuild/sample-app-build2",
+        "arn:aws:logs:ap-northeast-2:761111057533:log-group:/aws/codebuild/sample-app-build2:*"
+      ]
+    },
+    {
+      "Action": [
+        "s3:PutObject",
+        "s3:GetObject",
+        "s3:GetObjectVersion",
+        "s3:GetBucketAcl",
+        "s3:GetBucketLocation"
+      ],
+      "Effect": "Allow",
+      "Resource": [
+        "arn:aws:s3:::codepipeline-ap-northeast-2-*"
+      ]
+    },
+    {
+      "Action": [
+        "codebuild:CreateReportGroup",
+        "codebuild:CreateReport",
+        "codebuild:UpdateReport",
+        "codebuild:BatchPutTestCases",
+        "codebuild:BatchPutCodeCoverages"
+      ],
+      "Effect": "Allow",
+      "Resource": [
+        "arn:aws:codebuild:ap-northeast-2:761111057533:report-group/sample-app-build2-*"
+      ]
+    }
+  ],
+  "Version": "2012-10-17"
+}
+POLICY
+}
+
+resource "aws_iam_policy" "tfer--CodeBuildBasePolicy-sample-app2-ap-northeast-2" {
+  description = "Policy used in trust relationship with CodeBuild"
+  name        = "CodeBuildBasePolicy-sample-app2-ap-northeast-2"
+  path        = "/service-role/"
+
+  policy = <<POLICY
+{
+  "Statement": [
+    {
+      "Action": [
+        "logs:CreateLogGroup",
+        "logs:CreateLogStream",
+        "logs:PutLogEvents"
+      ],
+      "Effect": "Allow",
+      "Resource": [
+        "arn:aws:logs:ap-northeast-2:761111057533:log-group:/aws/codebuild/sample-app2",
+        "arn:aws:logs:ap-northeast-2:761111057533:log-group:/aws/codebuild/sample-app2:*"
+      ]
+    },
+    {
+      "Action": [
+        "s3:PutObject",
+        "s3:GetObject",
+        "s3:GetObjectVersion",
+        "s3:GetBucketAcl",
+        "s3:GetBucketLocation"
+      ],
+      "Effect": "Allow",
+      "Resource": [
+        "arn:aws:s3:::codepipeline-ap-northeast-2-*"
+      ]
+    },
+    {
+      "Action": [
+        "codebuild:CreateReportGroup",
+        "codebuild:CreateReport",
+        "codebuild:UpdateReport",
+        "codebuild:BatchPutTestCases",
+        "codebuild:BatchPutCodeCoverages"
+      ],
+      "Effect": "Allow",
+      "Resource": [
+        "arn:aws:codebuild:ap-northeast-2:761111057533:report-group/sample-app2-*"
+      ]
+    }
+  ],
+  "Version": "2012-10-17"
+}
+POLICY
+}
+
+resource "aws_iam_policy" "tfer--CodeBuildBasePolicy-sample-app2-build-ap-northeast-2" {
+  description = "Policy used in trust relationship with CodeBuild"
+  name        = "CodeBuildBasePolicy-sample-app2-build-ap-northeast-2"
+  path        = "/service-role/"
+
+  policy = <<POLICY
+{
+  "Statement": [
+    {
+      "Action": [
+        "logs:CreateLogGroup",
+        "logs:CreateLogStream",
+        "logs:PutLogEvents"
+      ],
+      "Effect": "Allow",
+      "Resource": [
+        "arn:aws:logs:ap-northeast-2:761111057533:log-group:/aws/codebuild/sample-app-build2",
+        "arn:aws:logs:ap-northeast-2:761111057533:log-group:/aws/codebuild/sample-app-build2:*"
+      ]
+    },
+    {
+      "Action": [
+        "s3:PutObject",
+        "s3:GetObject",
+        "s3:GetObjectVersion",
+        "s3:GetBucketAcl",
+        "s3:GetBucketLocation"
+      ],
+      "Effect": "Allow",
+      "Resource": [
+        "arn:aws:s3:::codepipeline-ap-northeast-2-*"
+      ]
+    },
+    {
+      "Action": [
+        "codebuild:CreateReportGroup",
+        "codebuild:CreateReport",
+        "codebuild:UpdateReport",
+        "codebuild:BatchPutTestCases",
+        "codebuild:BatchPutCodeCoverages"
+      ],
+      "Effect": "Allow",
+      "Resource": [
+        "arn:aws:codebuild:ap-northeast-2:761111057533:report-group/sample-app-build2-*"
+      ]
+    }
+  ],
+  "Version": "2012-10-17"
+}
+POLICY
+}
 
 resource "aws_iam_policy" "tfer--CodeBuildBasePolicy-sample-app2-eb-build-ap-northeast-2" {
   description = "Policy used in trust relationship with CodeBuild"
@@ -232,6 +594,57 @@ resource "aws_iam_policy" "tfer--CodeBuildBasePolicy-sample-app2-eb-build-ap-nor
 POLICY
 }
 
+resource "aws_iam_policy" "tfer--CodeBuildBasePolicy-sample-build-ap-northeast-1" {
+  description = "Policy used in trust relationship with CodeBuild"
+  name        = "CodeBuildBasePolicy-sample-build-ap-northeast-1"
+  path        = "/service-role/"
+
+  policy = <<POLICY
+{
+  "Statement": [
+    {
+      "Action": [
+        "logs:CreateLogGroup",
+        "logs:CreateLogStream",
+        "logs:PutLogEvents"
+      ],
+      "Effect": "Allow",
+      "Resource": [
+        "arn:aws:logs:ap-northeast-1:761111057533:log-group:/aws/codebuild/sample-build",
+        "arn:aws:logs:ap-northeast-1:761111057533:log-group:/aws/codebuild/sample-build:*"
+      ]
+    },
+    {
+      "Action": [
+        "s3:PutObject",
+        "s3:GetObject",
+        "s3:GetObjectVersion",
+        "s3:GetBucketAcl",
+        "s3:GetBucketLocation"
+      ],
+      "Effect": "Allow",
+      "Resource": [
+        "arn:aws:s3:::codepipeline-ap-northeast-1-*"
+      ]
+    },
+    {
+      "Action": [
+        "codebuild:CreateReportGroup",
+        "codebuild:CreateReport",
+        "codebuild:UpdateReport",
+        "codebuild:BatchPutTestCases",
+        "codebuild:BatchPutCodeCoverages"
+      ],
+      "Effect": "Allow",
+      "Resource": [
+        "arn:aws:codebuild:ap-northeast-1:761111057533:report-group/sample-build-*"
+      ]
+    }
+  ],
+  "Version": "2012-10-17"
+}
+POLICY
+}
 
 resource "aws_iam_policy" "tfer--CodeBuildCachePolicy-sample-app2-build-ap-northeast-2" {
   description = "Policy used in trust relationship with CodeBuild"
@@ -253,6 +666,34 @@ resource "aws_iam_policy" "tfer--CodeBuildCachePolicy-sample-app2-build-ap-north
       "Resource": [
         "arn:aws:s3:::deploy-land-tokyo",
         "arn:aws:s3:::deploy-land-tokyo/*"
+      ]
+    }
+  ],
+  "Version": "2012-10-17"
+}
+POLICY
+}
+
+resource "aws_iam_policy" "tfer--CodeBuildCodeConnectionsSourceCredentialsPolicy-sample-app-build-ap-northeast-2-761111057533" {
+  description = "Policy used in trust relationship with CodeBuild"
+  name        = "CodeBuildCodeConnectionsSourceCredentialsPolicy-sample-app-build-ap-northeast-2-761111057533"
+  path        = "/service-role/"
+
+  policy = <<POLICY
+{
+  "Statement": [
+    {
+      "Action": [
+        "codestar-connections:GetConnectionToken",
+        "codestar-connections:GetConnection",
+        "codeconnections:GetConnectionToken",
+        "codeconnections:GetConnection",
+        "codeconnections:UseConnection"
+      ],
+      "Effect": "Allow",
+      "Resource": [
+        "arn:aws:codestar-connections:ap-northeast-2:761111057533:connection/799db1e7-a9a8-4f5a-968d-ded7bdf95918",
+        "arn:aws:codeconnections:ap-northeast-2:761111057533:connection/799db1e7-a9a8-4f5a-968d-ded7bdf95918"
       ]
     }
   ],
@@ -314,6 +755,30 @@ resource "aws_iam_policy" "tfer--CodePipeline-CodeBuild-ap-northeast-2-app2-eb-p
 POLICY
 }
 
+resource "aws_iam_policy" "tfer--CodePipeline-CodeConnections-ap-northeast-2-app2" {
+  description = "Policy used in trust relationship with CodePipeline for CodeConnections Action"
+  name        = "CodePipeline-CodeConnections-ap-northeast-2-app2"
+  path        = "/service-role/"
+
+  policy = <<POLICY
+{
+  "Statement": [
+    {
+      "Action": [
+        "codeconnections:UseConnection",
+        "codestar-connections:UseConnection"
+      ],
+      "Effect": "Allow",
+      "Resource": [
+        "arn:aws:codestar-connections:*:761111057533:connection/799db1e7-a9a8-4f5a-968d-ded7bdf95918",
+        "arn:aws:codeconnections:*:761111057533:connection/799db1e7-a9a8-4f5a-968d-ded7bdf95918"
+      ]
+    }
+  ],
+  "Version": "2012-10-17"
+}
+POLICY
+}
 
 resource "aws_iam_policy" "tfer--CodePipeline-CodeConnections-ap-northeast-2-app2-eb-pipeline" {
   description = "Policy used in trust relationship with CodePipeline for CodeConnections Action"
@@ -340,3 +805,62 @@ resource "aws_iam_policy" "tfer--CodePipeline-CodeConnections-ap-northeast-2-app
 POLICY
 }
 
+
+resource "aws_iam_policy" "tfer--LambdaInvokeScopedAccessPolicy-9efc6acc-8636-4fe0-8ab1-933b23aef6ef" {
+  description = "Allow AWS Step Functions to invoke Lambda functions on your behalf"
+  name        = "LambdaInvokeScopedAccessPolicy-9efc6acc-8636-4fe0-8ab1-933b23aef6ef"
+  path        = "/service-role/"
+
+  policy = <<POLICY
+{
+  "Statement": [
+    {
+      "Action": [
+        "lambda:InvokeFunction"
+      ],
+      "Effect": "Allow",
+      "Resource": [
+        "arn:aws:lambda:ap-northeast-2:761111057533:function:cancel-enchantment:*",
+        "arn:aws:lambda:ap-northeast-2:761111057533:function:check-enchant-rate:*",
+        "arn:aws:lambda:ap-northeast-2:761111057533:function:proceed-with-enchantment:*"
+      ]
+    },
+    {
+      "Action": [
+        "lambda:InvokeFunction"
+      ],
+      "Effect": "Allow",
+      "Resource": [
+        "arn:aws:lambda:ap-northeast-2:761111057533:function:cancel-enchantment",
+        "arn:aws:lambda:ap-northeast-2:761111057533:function:check-enchant-rate",
+        "arn:aws:lambda:ap-northeast-2:761111057533:function:proceed-with-enchantment"
+      ]
+    }
+  ],
+  "Version": "2012-10-17"
+}
+POLICY
+}
+
+resource "aws_iam_policy" "tfer--SnsPublishScopedAccessPolicy-aae27f45-ffe7-4503-b766-a22c0360a014" {
+  description = "Allows AWS Step Functions to publish to SNS targets on your behalf."
+  name        = "SnsPublishScopedAccessPolicy-aae27f45-ffe7-4503-b766-a22c0360a014"
+  path        = "/service-role/"
+
+  policy = <<POLICY
+{
+  "Statement": [
+    {
+      "Action": [
+        "sns:Publish"
+      ],
+      "Effect": "Allow",
+      "Resource": [
+        "arn:aws:sns:ap-northeast-2:761111057533:enchantment-results"
+      ]
+    }
+  ],
+  "Version": "2012-10-17"
+}
+POLICY
+}
